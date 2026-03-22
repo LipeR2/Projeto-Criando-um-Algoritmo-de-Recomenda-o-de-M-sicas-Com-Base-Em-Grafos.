@@ -1,0 +1,320 @@
+// 1. Constraints (Executar uma por uma se for a primeira vez)
+CREATE CONSTRAINT user_id_unique IF NOT EXISTS FOR (u:User) REQUIRE u.userId IS UNIQUE;
+CREATE CONSTRAINT music_id_unique IF NOT EXISTS FOR (m:Music) REQUIRE m.musicId IS UNIQUE;
+CREATE CONSTRAINT artist_id_unique IF NOT EXISTS FOR (a:Artist) REQUIRE a.artistId IS UNIQUE;
+CREATE CONSTRAINT genre_name_unique IF NOT EXISTS FOR (g:Genre) REQUIRE g.name IS UNIQUE;
+
+// 2. Gêneros
+UNWIND ["Pop", "Rock", "Eletrônica", "Indie", "MPB", "Hip-Hop", "Classical", "Jazz", "Folk", "Metal"] AS genreName
+MERGE (:Genre {name: genreName});
+
+// 3. Artistas
+UNWIND [
+  {id: "artist_001", n: "Taylor Swift"}, {id: "artist_002", n: "Queen"},
+  {id: "artist_003", n: "Daft Punk"}, {id: "artist_004", n: "Florence + The Machine"},
+  {id: "artist_005", n: "Caetano Veloso"}, {id: "artist_006", n: "Kendrick Lamar"},
+  {id: "artist_007", n: "Beethoven"}, {id: "artist_008", n: "Miles Davis"},
+  {id: "artist_009", n: "The Lumineers"}, {id: "artist_010", n: "Metallica"},
+  {id: "artist_011", n: "Radiohead"}, {id: "artist_012", n: "Gilberto Gil"}
+] AS artist
+MERGE (:Artist {artistId: artist.id, name: artist.n});
+
+// 4. Músicas
+UNWIND [
+  {id: "music_001", t: "Anti-Hero"}, {id: "music_002", t: "Cruel Summer"},
+  {id: "music_003", t: "Bohemian Rhapsody"}, {id: "music_004", t: "Don't Stop Me Now"},
+  {id: "music_005", t: "Get Lucky"}, {id: "music_006", t: "One More Time"},
+  {id: "music_007", t: "Dog Days Are Over"}, {id: "music_008", t: "Shake It Out"},
+  {id: "music_009", t: "Sozinho"}, {id: "music_010", t: "Leãozinho"},
+  {id: "music_011", t: "HUMBLE."}, {id: "music_012", t: "Alright"},
+  {id: "music_013", t: "Symphony No. 5"}, {id: "music_014", t: "Für Elise"},
+  {id: "music_015", t: "So What"}, {id: "music_016", t: "Blue in Green"},
+  {id: "music_017", t: "Ho Hey"}, {id: "music_018", t: "Ophelia"},
+  {id: "music_019", t: "Enter Sandman"}, {id: "music_020", t: "Master of Puppets"},
+  {id: "music_021", t: "Creep"}, {id: "music_022", t: "Paranoid Android"},
+  {id: "music_023", t: "Everything in Its Right Place"}, {id: "music_024", t: "Aquele Abraço"},
+  {id: "music_025", t: "Andar com Fé"}
+] AS music
+MERGE (:Music {musicId: music.id, title: music.t});
+
+// 5. Usuários
+UNWIND [
+  {id: "user_001", n: "Alice"}, {id: "user_002", n: "Bob"},
+  {id: "user_003", n: "Carol"}, {id: "user_004", n: "David"},
+  {id: "user_005", n: "Eve"}, {id: "user_006", n: "Frank"},
+  {id: "user_007", n: "Grace"}, {id: "user_008", n: "Heidi"},
+  {id: "user_009", n: "Ivan"}, {id: "user_010", n: "Judy"},
+  {id: "user_011", n: "Liam"}, {id: "user_012", n: "Maria"}
+] AS user
+MERGE (:User {userId: user.id, name: user.n});
+
+//--
+// 2. Relationships
+UNWIND [
+  {m: "Anti-Hero", a: "Taylor Swift"}, {m: "Cruel Summer", a: "Taylor Swift"},
+  {m: "Bohemian Rhapsody", a: "Queen"}, {m: "Don't Stop Me Now", a: "Queen"},
+  {m: "Get Lucky", a: "Daft Punk"}, {m: "One More Time", a: "Daft Punk"},
+  {m: "Dog Days Are Over", a: "Florence + The Machine"}, {m: "Shake It Out", a: "Florence + The Machine"},
+  {m: "Sozinho", a: "Caetano Veloso"}, {m: "Leãozinho", a: "Caetano Veloso"},
+  {m: "HUMBLE.", a: "Kendrick Lamar"}, {m: "Alright", a: "Kendrick Lamar"},
+  {m: "Symphony No. 5", a: "Beethoven"}, {m: "Für Elise", a: "Beethoven"},
+  {m: "So What", a: "Miles Davis"}, {m: "Blue in Green", a: "Miles Davis"},
+  {m: "Ho Hey", a: "The Lumineers"}, {m: "Ophelia", a: "The Lumineers"},
+  {m: "Enter Sandman", a: "Metallica"}, {m: "Master of Puppets", a: "Metallica"},
+  {m: "Creep", a: "Radiohead"}, {m: "Paranoid Android", a: "Radiohead"},
+  {m: "Everything in Its Right Place", a: "Radiohead"},
+  {m: "Aquele Abraço", a: "Gilberto Gil"}, {m: "Andar com Fé", a: "Gilberto Gil"}
+] AS row
+MATCH (m:Music {title: row.m})
+MATCH (a:Artist {name: row.a})
+MERGE (m)-[:PERFORMED_BY]->(a);
+//--
+UNWIND [
+  {m: "Anti-Hero", g: "Pop"}, {m: "Cruel Summer", g: "Pop"},
+  {m: "Bohemian Rhapsody", g: "Rock"}, {m: "Don't Stop Me Now", g: "Rock"},
+  {m: "Get Lucky", g: "Eletrônica"}, {m: "One More Time", g: "Eletrônica"},
+  {m: "Dog Days Are Over", g: "Indie"}, {m: "Shake It Out", g: "Indie"},
+  {m: "Sozinho", g: "MPB"}, {m: "Leãozinho", g: "MPB"},
+  {m: "HUMBLE.", g: "Hip-Hop"}, {m: "Alright", g: "Hip-Hop"},
+  {m: "Symphony No. 5", g: "Classical"}, {m: "Für Elise", g: "Classical"},
+  {m: "So What", g: "Jazz"}, {m: "Blue in Green", g: "Jazz"},
+  {m: "Ho Hey", g: "Folk"}, {m: "Ophelia", g: "Folk"},
+  {m: "Enter Sandman", g: "Metal"}, {m: "Master of Puppets", g: "Metal"},
+  {m: "Aquele Abraço", g: "MPB"}, {m: "Andar com Fé", g: "MPB"}
+] AS row
+MATCH (m:Music {title: row.m})
+MATCH (g:Genre {name: row.g})
+MERGE (m)-[:BELONGS_TO_GENRE]->(g);
+//--
+UNWIND [
+  {m: "Creep", g: "Indie"}, 
+  {m: "Creep", g: "Rock"}, 
+  {m: "Paranoid Android", g: "Rock"}, 
+  {m: "Everything in Its Right Place", g: "Eletrônica"}
+] AS row
+MATCH (m:Music {title: row.m})
+MATCH (g:Genre {name: row.g})
+MERGE (m)-[:BELONGS_TO_GENRE]->(g);
+//--
+UNWIND [
+  {a: "Taylor Swift", g: "Pop"},
+  {a: "Queen", g: "Rock"},
+  {a: "Daft Punk", g: "Eletrônica"},
+  {a: "Florence + The Machine", g: "Indie"},
+  {a: "Caetano Veloso", g: "MPB"},
+  {a: "Kendrick Lamar", g: "Hip-Hop"},
+  {a: "Beethoven", g: "Classical"},
+  {a: "Miles Davis", g: "Jazz"},
+  {a: "The Lumineers", g: "Folk"},
+  {a: "Metallica", g: "Metal"},
+  {a: "Gilberto Gil", g: "MPB"}
+] AS row
+MATCH (a:Artist {name: row.a})
+MATCH (g:Genre {name: row.g})
+MERGE (a)-[:PLAYS_GENRE]->(g);
+//--
+UNWIND ["Indie", "Rock", "Eletrônica"] AS genreName
+MATCH (a:Artist {name: "Radiohead"})
+MATCH (g:Genre {name: genreName})
+MERGE (a)-[:PLAYS_GENRE]->(g);
+//--
+// 1. Seguindo Artistas (Múltiplos FOLLOWS)
+UNWIND ["Taylor Swift", "Florence + The Machine"] AS artistName
+MATCH (u:User {name: "Alice"})
+MATCH (a:Artist {name: artistName})
+MERGE (u)-[:FOLLOWS]->(a);
+
+// 2. Curtindo Músicas (LIKES)
+MATCH (u:User {name: "Alice"}), (m:Music {title: "Anti-Hero"})
+MERGE (u)-[:LIKES]->(m);
+
+// 3. Ouvindo Músicas (LISTENED_TO com propriedade)
+MATCH (u:User {name: "Alice"}), (m:Music {title: "Dog Days Are Over"})
+MERGE (u)-[:LISTENED_TO {play_count: 20}]->(m);
+//--
+// 1. Curtindo Músicas (LIKES)
+UNWIND ["Cruel Summer", "Dog Days Are Over"] AS musicTitle
+MATCH (u:User {name: "David"})
+MATCH (m:Music {title: musicTitle})
+MERGE (u)-[:LIKES]->(m);
+
+// 2. Seguindo Artistas (FOLLOWS)
+UNWIND ["Taylor Swift", "The Lumineers"] AS artistName
+MATCH (u:User {name: "David"})
+MATCH (a:Artist {name: artistName})
+MERGE (u)-[:FOLLOWS]->(a);
+
+// 3. Ouvindo Músicas (LISTENED_TO)
+MATCH (u:User {name: "David"}), (m:Music {title: "Ho Hey"})
+MERGE (u)-[:LISTENED_TO {play_count: 15}]->(m);
+//--
+// 1. Seguindo Artistas (FOLLOWS)
+UNWIND ["The Lumineers", "Florence + The Machine"] AS artistName
+MATCH (u:User {name: "Maria"})
+MATCH (a:Artist {name: artistName})
+MERGE (u)-[:FOLLOWS]->(a);
+
+// 2. Curtindo Músicas (LIKES)
+MATCH (u:User {name: "Maria"}), (m:Music {title: "Ophelia"})
+MERGE (u)-[:LIKES]->(m);
+
+// 3. Ouvindo Músicas (Ajustado para o padrão do seu PageRank: LISTENED/playcount)
+MATCH (u:User {name: "Maria"}), (m:Music {title: "Shake It Out"})
+MERGE (u)-[:LISTENED {playcount: 10}]->(m);
+//--
+// 1. Seguindo Artistas (FOLLOWS)
+UNWIND ["Queen", "Metallica"] AS artistName
+MATCH (u:User {name: "Bob"})
+MATCH (a:Artist {name: artistName})
+MERGE (u)-[:FOLLOWS]->(a);
+
+// 2. Curtindo Músicas (LIKES)
+MATCH (u:User {name: "Bob"}), (m:Music {title: "Bohemian Rhapsody"})
+MERGE (u)-[:LIKES]->(m);
+
+// 3. Ouvindo Músicas (Padrão GDS: LISTENED / playcount)
+MATCH (u:User {name: "Bob"}), (m:Music {title: "Enter Sandman"})
+MERGE (u)-[:LISTENED {playcount: 50}]->(m);
+//--
+// 1. Ações de Usuários (LIKES, FOLLOWS Artista e LISTENED)
+UNWIND [
+  {name: "Frank", likes: ["Master of Puppets"], follows: ["Metallica", "Radiohead"], listen: "Paranoid Android", count: 5},
+  {name: "Heidi", likes: ["Don't Stop Me Now", "Creep"], follows: ["Queen", "Radiohead"]},
+  {name: "Eve",   likes: ["Get Lucky"], follows: ["Daft Punk", "Kendrick Lamar"], listen: "HUMBLE.", count: 25},
+  {name: "Judy",  likes: ["Alright", "Everything in Its Right Place"], follows: ["Kendrick Lamar", "Radiohead"]},
+  {name: "Liam",  likes: ["Paranoid Android"], follows: ["Daft Punk", "Radiohead"], listen: "One More Time", count: 30},
+  {name: "Carol", likes: ["Sozinho"], follows: ["Caetano Veloso", "Miles Davis"], listen: "So What", count: 10},
+  {name: "Grace", likes: ["Aquele Abraço"], follows: ["Gilberto Gil", "Beethoven"], listen: "Symphony No. 5", count: 5},
+  {name: "Ivan",  likes: ["Leãozinho", "Blue in Green"], follows: ["Caetano Veloso", "Gilberto Gil", "Miles Davis"]}
+] AS data
+MATCH (u:User {name: data.name})
+
+// Processa FOLLOWS Artistas
+FOREACH (aName IN data.follows |
+  MERGE (a:Artist {name: aName})
+  MERGE (u)-[:FOLLOWS]->(a)
+)
+
+// Processa LIKES
+FOREACH (mTitle IN data.likes |
+  MERGE (m:Music {title: mTitle})
+  MERGE (u)-[:LIKES]->(m)
+)
+
+// Processa LISTENED (Padronizado para playcount)
+FOREACH (_ IN CASE WHEN data.listen IS NOT NULL THEN [1] ELSE [] END |
+  MERGE (m:Music {title: data.listen})
+  MERGE (u)-[:LISTENED {playcount: data.count}]->(m)
+);
+
+// 2. Relacionamentos entre Usuários (Rede Social)
+UNWIND [
+  {u1: "Alice", u2: "David", bidir: true},
+  {u1: "Alice", u2: "Maria", bidir: false},
+  {u1: "David", u2: "Maria", bidir: false},
+  {u1: "Bob",   u2: "Frank", bidir: false},
+  {u1: "Bob",   u2: "Heidi", bidir: true},
+  {u1: "Eve",   u2: "Judy",  bidir: false},
+  {u1: "Judy",  u2: "Liam",  bidir: true},
+  {u1: "Carol", u2: "Ivan",  bidir: false},
+  {u1: "Grace", u2: "Ivan",  bidir: false},
+  {u1: "Alice", u2: "Heidi", bidir: false},
+  {u1: "Frank", u2: "Liam",  bidir: false},
+  {u1: "Eve",   u2: "Carol", bidir: false}
+] AS rel
+MATCH (user1:User {name: rel.u1})
+MATCH (user2:User {name: rel.u2})
+MERGE (user1)-[:FOLLOWS]->(user2)
+FOREACH (_ IN CASE WHEN rel.bidir THEN [1] ELSE [] END |
+  MERGE (user2)-[:FOLLOWS]->(user1)
+);
+
+//--
+// 3. Recomendar Músicas de Artistas Seguidos
+MATCH (u:User {name: "Alice"})-[:FOLLOWS]->(a:Artist)
+MATCH (m:Music)-[:PERFORMED_BY]->(a)
+WHERE NOT (u)-[:LIKES|LISTENED]->(m)
+RETURN m.title AS Recomendacao, a.name AS Artista;
+
+//--
+// 4. Recomendação por Gênero
+MATCH (u:User {name: "Alice"})-[:FOLLOWS]->(:Artist)-[:PLAYS_GENRE]->(g:Genre)
+MATCH (similarArtist:Artist)-[:PLAYS_GENRE]->(g)
+MATCH (recMusic:Music)-[:PERFORMED_BY]->(similarArtist)
+
+WHERE NOT (u)-[:FOLLOWS]->(similarArtist)
+  AND NOT (u)-[:LIKES|LISTENED]->(recMusic)
+
+RETURN DISTINCT recMusic.title AS Recomendacao,
+                similarArtist.name AS ArtistaSimilar,
+                g.name AS Genero
+LIMIT 10;
+
+//--Page Rank
+// 1. Limpeza: O parâmetro 'false' no final evita erro se o grafo não existir
+CALL gds.graph.drop('nichoMusica', false) YIELD graphName;
+
+// 2. Projeção: Adicionado mapeamento explícito da propriedade com 'defaultValue'
+CALL gds.graph.project(
+  'nichoMusica',
+  ['User', 'Music'],
+  {
+    LISTENED: {
+      orientation: 'UNDIRECTED',
+      properties: {
+        playcount: {
+          property: 'playcount',
+          defaultValue: 1.0
+        }
+      }
+    }
+  }
+);
+
+// 3. Execução: PageRank com filtragem de labels otimizada
+CALL gds.pageRank.stream('nichoMusica', {
+  maxIterations: 20,
+  dampingFactor: 0.85,
+  relationshipWeightProperty: 'playcount'
+})
+YIELD nodeId, score
+// Usar labels() ou verificar a label no nó retornado
+WITH gds.util.asNode(nodeId) AS n, score
+WHERE n:Music
+RETURN n.title AS Musica, score
+ORDER BY score DESC
+LIMIT 10;
+
+//--Node Similarity 
+// 1. Garante que não haja projeções com o mesmo nome
+CALL gds.graph.drop('musicaGDS', false) YIELD graphName;
+
+// 2. Cria a projeção (Certifique-se de que os labels 'User' e 'Music' existem)
+CALL gds.graph.project(
+  'musicaGDS',
+  ['User', 'Music'],
+  {
+    LISTENED: {
+      orientation: 'NATURAL',
+      properties: 'playcount'
+    }
+  }
+) YIELD graphName, nodeCount, relationshipCount;
+
+// 3. Executa o Node Similarity (Filtragem Colaborativa)
+CALL gds.nodeSimilarity.stream('musicaGDS', {
+  topK: 1,
+  relationshipWeightProperty: 'playcount'
+})
+YIELD node1, node2, similarity
+WITH gds.util.asNode(node1) AS u1, gds.util.asNode(node2) AS u2, similarity
+WHERE u1:User AND u2:User AND u1.name = "Alice"
+
+// 4. Busca músicas do usuário similar que a Alice ainda não ouviu
+MATCH (u2)-[:LISTENED]->(rec:Music)
+WHERE NOT (u1)-[:LISTENED]->(rec)
+RETURN u1.name AS Usuario, 
+       u2.name AS SimilarA, 
+       similarity AS IndiceDeSemelhança, 
+       rec.title AS SugestaoDeMusica
+ORDER BY similarity DESC;
