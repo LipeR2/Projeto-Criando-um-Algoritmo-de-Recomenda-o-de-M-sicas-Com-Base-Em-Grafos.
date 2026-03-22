@@ -1,4 +1,4 @@
-# Criando um Algoritmo com Base em Grafos:
+# Algoritmo com Base em Grafos:
 ---
  1.  Problemática:
 ---
